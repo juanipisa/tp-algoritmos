@@ -4,118 +4,137 @@
 #include <time.h>
 #include <thread>
 #include <chrono>
+#include <list>
 
 using namespace std;
 
 struct pregunta {
 	char nombrePregunta[50];
+	char respuestaCorrecta[30];
 	bool respondida;
-	char respuesta[30];
-	pregunta * sgt;
 };
 
 struct categoria {
 	char nombre[20];
+	bool habilitada;
 	pregunta arrayPreguntas[6];
 };
 
-struct nodoJugadores {
-	char nombre[20];
-	int puntos;
-	int turno;
+struct turno {
+	int numero;
+	char nombreJugador[20];
+	char nombrePregunta[50];
+	char respuestaUsuario[30];
 };
 
+struct jugador {
+	char nombre[20];
+	int puntos;
+	int turnosRestantes;
+};
 
-void juego(categoria arrayCategoria[]) {
+int validarPregunta(categoria arrayCategoria[], int categoriaRandom, int preg) {
+	if (arrayCategoria[categoriaRandom].arrayPreguntas[preg].respondida == true) {
+		preg++;
+	}
+	return preg;
+}
 
-	int categoriaRandom = rand() % 7;
-	int i = 0;
-	char respuestaJugadorActual[30];
-	while (arrayCategoria[categoriaRandom].arrayPreguntas[i].respondida == true) {
+int validarCategoria(categoria arrayCategoria[], int categoriaRandom) {
+	if (arrayCategoria[categoriaRandom].habilitada == false) {
+		categoriaRandom = rand() % 7;
+	}
+	return categoriaRandom;
+}
+
+int validarJugador(jugador arrayJugador[], int i) {
+	if (arrayJugador[i].turnosRestantes == 0) {
 		i++;
 	}
+	return i;
 
-	cout << "Cargando categoria.";
-	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-	cout << " . ";
-	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-	cout << ". ";
-	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+}
+
+void juego(categoria arrayCategoria[], turno arrayTurno[], jugador arrayJugador[], int i, int &preg) {
+
+	srand(time(0));
+	int categoriaRandom = rand() % 7;
+
+	preg = validarPregunta(arrayCategoria, categoriaRandom, preg);
+	i = validarJugador(arrayJugador, i);
+	categoriaRandom = validarCategoria(arrayCategoria, categoriaRandom);
+
+	cout << preg << endl;
+	strcpy(arrayTurno[i].nombreJugador, arrayJugador[i].nombre);
+	strcpy(arrayTurno[i].nombrePregunta, arrayCategoria[categoriaRandom].arrayPreguntas[preg].nombrePregunta);
+	strcpy(arrayTurno[i].respuestaUsuario, " ");
+
+	cout << arrayTurno[i].nombreJugador << " es tu turno!" << endl;
+	this_thread::sleep_for(chrono::milliseconds(1000));
 
 	cout << "Categoria: " << arrayCategoria[categoriaRandom].nombre<<endl;
-	std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
-	cout << arrayCategoria[categoriaRandom].arrayPreguntas[i].nombrePregunta << endl;
-	cout << "Respuesta: "; cin >> respuestaJugadorActual;
-
-	if (respuestaJugadorActual == arrayCategoria[categoriaRandom].arrayPreguntas[i].respuesta) {
-		cout << "Su respuesta es correcta!" << endl;
-	}
+	cout << "Pregunta: " << arrayCategoria[categoriaRandom].arrayPreguntas[preg].nombrePregunta << endl;
+	cout << "Tu respuesta: "<< arrayCategoria[categoriaRandom].arrayPreguntas[preg].respuestaCorrecta<<endl;  
+	cin >> arrayTurno[i].respuestaUsuario;
 
 	arrayCategoria[categoriaRandom].arrayPreguntas[i].respondida = true;
 
-
-}
-// Funcion donde se van a leer los Arhivos una vez que se inicie el programa
-void cargarJuego(categoria arrayCategoria[]) {
-
-	FILE* archivoCategorias = fopen("categorias.dat", "rb");
-	//FILE* archivoJugadores = fopen("jugadores.dat", "rb");
-
-	fread(&arrayCategoria[0], sizeof(categoria), 1, archivoCategorias);
-	
-	juego(arrayCategoria);
-}
-// Funcion que se llama por primera vez para crear el juego
-void crearJuego() {
-	srand(time(0));
-	categoria arrayCategoria[7] = {};
-
-	strcpy(arrayCategoria[0].nombre, "Ciencia");
-	strcpy(arrayCategoria[0].arrayPreguntas[0].nombrePregunta, "Cual es el radio de tu ano?");
-	arrayCategoria[0].arrayPreguntas[0].respondida = false;
-	strcpy(arrayCategoria[0].arrayPreguntas[0].respuesta, "15");
-
-	strcpy(arrayCategoria[1].nombre, "Deportes");
-	strcpy(arrayCategoria[1].arrayPreguntas[0].nombrePregunta, "Cual es el radio de tu ano?");
-	arrayCategoria[0].arrayPreguntas[0].respondida = false;
-	strcpy(arrayCategoria[0].arrayPreguntas[0].respuesta, "15");
-
-	strcpy(arrayCategoria[2].nombre, "Arte");
-	strcpy(arrayCategoria[2].arrayPreguntas[0].nombrePregunta, "Cual es el radio de tu ano?");
-	arrayCategoria[0].arrayPreguntas[0].respondida = false;
-	strcpy(arrayCategoria[0].arrayPreguntas[0].respuesta, "15");
-
-	strcpy(arrayCategoria[3].nombre, "Historia");
-	strcpy(arrayCategoria[3].arrayPreguntas[0].nombrePregunta, "Cual es el radio de tu ano?");
-	arrayCategoria[0].arrayPreguntas[0].respondida = false;
-	strcpy(arrayCategoria[0].arrayPreguntas[0].respuesta, "15");
-
-	strcpy(arrayCategoria[4].nombre, "Entretenimiento");
-	strcpy(arrayCategoria[4].arrayPreguntas[0].nombrePregunta, "Cual es el radio de tu ano?");
-	arrayCategoria[0].arrayPreguntas[0].respondida = false;
-	strcpy(arrayCategoria[0].arrayPreguntas[0].respuesta, "15");
-
-	strcpy(arrayCategoria[5].nombre, "Geografia");
-	strcpy(arrayCategoria[5].arrayPreguntas[0].nombrePregunta, "Cual es el radio de tu ano?");
-	arrayCategoria[0].arrayPreguntas[0].respondida = false;
-	strcpy(arrayCategoria[0].arrayPreguntas[0].respuesta, "15");
-
-	strcpy(arrayCategoria[6].nombre, "Zaraza");
-	strcpy(arrayCategoria[6].arrayPreguntas[0].nombrePregunta, "Cual es el radio de tu ano?");
-	arrayCategoria[0].arrayPreguntas[0].respondida = false;
-	strcpy(arrayCategoria[0].arrayPreguntas[0].respuesta, "15");
-
-	FILE* archivoCategoria = fopen("categorias.dat", "wb");
-
-	for (int i = 0; i < 2; i++) {
-		fwrite(&arrayCategoria[i], sizeof(categoria), 1, archivoCategoria);
+	if (strcmp(arrayCategoria[categoriaRandom].arrayPreguntas[preg].respuestaCorrecta, arrayTurno[i].respuestaUsuario) == 0) {
+		cout << "Su respuesta es correcta!" << endl;
+		arrayJugador[i].puntos++;
 	}
-	cargarJuego(arrayCategoria);
+	else {
+		cout << "Respuesta incorrecta" << endl;
+	}
+
+	preg++;
+	arrayJugador[i].turnosRestantes--;
+	arrayCategoria[categoriaRandom].arrayPreguntas[preg].respondida = true;
+	cout << "Turnos restantes: " << arrayJugador[i].turnosRestantes << endl;
+	cout << "Puntos: " << arrayJugador[i].puntos << "\n" << endl;
+	i++;
+
 }
 
 int main()
 {
-	crearJuego();
-}
+	FILE* archivoCategorias = fopen("categorias.dat", "rb");
+	FILE* archivoJugadores = fopen("jugadores.dat", "rb");
+	FILE* archivoTurnos = fopen("turnos.dat", "rb");
 
+	categoria arrayCategoria[7] = {};
+	// EL ARRAY DE TURNO DESPUES LO CAMBIAMSO POR UNA PILOVICH
+	jugador arrayJugador[5] = {	/*{"jugador1", 0, 5},
+								{"jugador2", 0, 5},
+								{"jugador3", 0, 5},
+								{"jugador4", 0, 5},
+								{"jugador5", 0, 5}*/};
+
+	turno arrayTurno[42] = { /*{0, "pepe", "pepito", "pepardo"}*/ };
+	
+	for(int i=0;i<7;i++){
+		fread(&arrayCategoria[i], sizeof(categoria), 1, archivoCategorias);
+	}
+	fclose(archivoCategorias);
+
+	for(int i=0;i<5;i++){
+		fread(&arrayJugador[i], sizeof(jugador), 1, archivoJugadores);
+		//cout << arrayJugador[i].nombre << " " << arrayJugador[i].puntos << " " << arrayJugador[i].turnosRestantes << endl;
+	}
+	fclose(archivoJugadores);
+
+	int j = 0;
+	while (!feof(archivoTurnos)) {
+		fread(&arrayTurno[j], sizeof(turno), 1, archivoTurnos);
+		j++;
+	}
+	fclose(archivoTurnos);
+	
+	//cout << arrayTurno[0].numero << " " << arrayTurno[0].nombreJugador << " " << arrayTurno[0].nombrePregunta << " " <<arrayTurno[0].respuestaUsuario;
+	
+	int preg = 0;
+	for(int i=0;i<5;i++){
+	juego(arrayCategoria, arrayTurno, arrayJugador, i, preg);
+	}
+}
+  
