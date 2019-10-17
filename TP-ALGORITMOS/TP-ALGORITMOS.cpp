@@ -33,6 +33,31 @@ struct jugador {
 	int turnosRestantes;
 };
 
+jugador validarPuntos(jugador arrayJugador[]) {
+	jugador ganador;
+	ganador = arrayJugador[0]; //Le asignamos el primer elemento del array
+
+	for (int i = 0; i < 5; i++) {
+		if (arrayJugador[i].puntos > ganador.puntos) {
+			ganador.puntos = arrayJugador[i].puntos;
+			strcpy(ganador.nombre, arrayJugador[i].nombre);
+			
+		}
+	}
+	
+	return ganador;
+}
+int validarTurnos(jugador arrayJugador[]) {
+	int turnosRestantes = 0;	
+	//Para saber si todos los jugadores completaron sus turnos
+		for (int h = 0; h < 5; h++) {
+			if (arrayJugador[h].turnosRestantes == 0) {
+				turnosRestantes++;
+			}
+		}
+		return turnosRestantes;
+}
+
 int validarPregunta(categoria arrayCategoria[], int categoriaRandom, int preg) {
 	if (arrayCategoria[categoriaRandom].arrayPreguntas[preg].respondida == true) {
 		preg++;
@@ -52,7 +77,7 @@ int validarJugador(jugador arrayJugador[], int i) {
 		i++;
 	}
 	return i;
-
+	
 }
 
 void juego(categoria arrayCategoria[], turno arrayTurno[], jugador arrayJugador[], int i, int &preg) {
@@ -77,21 +102,26 @@ void juego(categoria arrayCategoria[], turno arrayTurno[], jugador arrayJugador[
 	cout << "Tu respuesta: "<< arrayCategoria[categoriaRandom].arrayPreguntas[preg].respuestaCorrecta<<endl;  
 	cin >> arrayTurno[i].respuestaUsuario;
 
+	//Esto que vendria a ser? i no lo usas para el jugador? Aparte mas abajo, en la linea 94 haces lo mismo.
 	arrayCategoria[categoriaRandom].arrayPreguntas[i].respondida = true;
 
 	if (strcmp(arrayCategoria[categoriaRandom].arrayPreguntas[preg].respuestaCorrecta, arrayTurno[i].respuestaUsuario) == 0) {
 		cout << "Su respuesta es correcta!" << endl;
+		cout << arrayJugador[i].nombre << " suma 1 punto!" << endl;
 		arrayJugador[i].puntos++;
 	}
 	else {
 		cout << "Respuesta incorrecta" << endl;
+		cout << arrayJugador[i].nombre << "no suma ningun punto." << endl;
 	}
-
 	preg++;
 	arrayJugador[i].turnosRestantes--;
 	arrayCategoria[categoriaRandom].arrayPreguntas[preg].respondida = true;
 	cout << "Turnos restantes: " << arrayJugador[i].turnosRestantes << endl;
-	cout << "Puntos: " << arrayJugador[i].puntos << "\n" << endl;
+	cout << "TABLA DE PUNTOS "<<endl;
+	for(int j = 0; j<5; j++){
+		cout << arrayJugador[j].nombre<<": "<< arrayJugador[j].puntos << endl;
+	}
 	i++;
 
 }
@@ -101,7 +131,7 @@ int main()
 	FILE* archivoCategorias = fopen("categorias.dat", "rb");
 	FILE* archivoJugadores = fopen("jugadores.dat", "rb");
 	FILE* archivoTurnos = fopen("turnos.dat", "rb");
-
+	
 	categoria arrayCategoria[7] = {};
 	// EL ARRAY DE TURNO DESPUES LO CAMBIAMSO POR UNA PILOVICH
 	jugador arrayJugador[5] = {	/*{"jugador1", 0, 5},
@@ -134,7 +164,15 @@ int main()
 	
 	int preg = 0;
 	for(int i=0;i<5;i++){
-	juego(arrayCategoria, arrayTurno, arrayJugador, i, preg);
+		
+		int empateDeTurnos = validarTurnos(arrayJugador);
+		
+		//if (empateDeTurnos == 5 &&) { empateJuego(arrayJugador, i, arrayCategoria, preg); }
+		//Condicion cuando un jugador se queda sin turnos
+		if (arrayJugador[i].turnosRestantes == 0) { i++; }
+		juego(arrayCategoria, arrayTurno, arrayJugador, i, preg);
+		//Una vez que haya jugado el ultimo jugador, se resetea para que vuelva a empezar
+		if (i == 4) { i = -1; }
 	}
 }
   
